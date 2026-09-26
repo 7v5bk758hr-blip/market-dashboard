@@ -196,7 +196,8 @@ def get_yield_curve_data():
 
 PLOT_CONFIG = {
     "scrollZoom": False,
-    "doubleClick": False
+    "doubleClick": False,
+    "staticPlot": True
 }
 
 # ==================================
