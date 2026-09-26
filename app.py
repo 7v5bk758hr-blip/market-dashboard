@@ -4,6 +4,9 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from pandas_datareader import data as pdr
+from datetime import datetime
+
 # ==================================
 # ページ設定
 # ==================================
@@ -42,7 +45,7 @@ if "selected_view" not in st.session_state:
 # ==================================
 
 # 1段目
-c1, c2, c3, c4, spacer = st.columns([1, 1, 1, 1, 4])
+c1, c2, c3, c4, c5, spacer = st.columns([1, 1, 1, 1, 1, 3])
 
 if c1.button("主要指標"):
     st.session_state.selected_view = "主要指標"
@@ -55,6 +58,9 @@ if c3.button("米10年債"):
 
 if c4.button("VIX"):
     st.session_state.selected_view = "VIX"
+
+if c5.button("逆イールド"):
+    st.session_state.selected_view = "逆イールド"
 
 
 # 2段目
@@ -113,17 +119,77 @@ st.write(f"選択中 : {selected_view}")
 @st.cache_data(ttl=3600)
 def get_data(ticker):
 
-    df = yf.download(
-        ticker,
-        period="1y",
-        auto_adjust=True,
-        progress=False
-    )
+    try:
 
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
+        df = yf.download(
+            ticker,
+            period="1y",
+            auto_adjust=True,
+            progress=False
+        )
 
-    return df
+        if df.empty:
+            return pd.DataFrame()
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+
+        return df
+
+    except Exception:
+        return pd.DataFrame()
+
+
+@st.cache_data(ttl=3600)
+def get_yield_curve_data():
+
+    try:
+
+        start = "2000-01-01"
+        end = datetime.today()
+
+        dgs10 = pdr.DataReader(
+            "DGS10",
+            "fred",
+            start,
+            end
+        )
+
+        dgs2 = pdr.DataReader(
+            "DGS2",
+            "fred",
+            start,
+            end
+        )
+
+        if dgs10.empty or dgs2.empty:
+            return None
+
+        df = pd.concat(
+            [dgs10, dgs2],
+            axis=1
+        )
+
+        df.columns = [
+            "10Y",
+            "2Y"
+        ]
+
+        df = df.dropna()
+
+        if df.empty:
+            return None
+
+        df["Spread"] = (
+            df["10Y"] -
+            df["2Y"]
+        )
+
+        return df
+
+    except Exception:
+        return None
+
 
 # ==================================
 # 主要指標表示
@@ -535,4 +601,83 @@ elif selected_view == "Gold vs VIX":
 
     st.info(
         "GoldとVIXが同時上昇する場合はリスクオフ傾向、VIX低下とGold横ばい・下落はリスクオン傾向として参考になります。"
+    )
+
+
+# ==================================
+# 米国逆イールド
+# ==================================
+elif selected_view == "逆イールド":
+
+    st.subheader("📉 米国逆イールド")
+
+    df = get_yield_curve_data()
+
+    if df is None:
+        st.error("逆イールドデータ取得失敗")
+        st.stop()
+
+    current_10y = float(df["10Y"].iloc[-1])
+    current_2y = float(df["2Y"].iloc[-1])
+    current_spread = float(df["Spread"].iloc[-1])
+
+    c1, c2, c3 = st.columns(3)
+
+    c1.metric(
+        "米10年債",
+        f"{current_10y:.2f}%"
+    )
+
+    c2.metric(
+        "米2年債",
+        f"{current_2y:.2f}%"
+    )
+
+    c3.metric(
+        "スプレッド",
+        f"{current_spread:.2f}%"
+    )
+
+    if current_spread > 0.5:
+        st.success(
+            f"🟢 正常（{current_spread:.2f}%）"
+        )
+
+    elif current_spread > 0:
+        st.warning(
+            f"🟡 フラット化注意（{current_spread:.2f}%）"
+        )
+
+    else:
+        st.error(
+            f"🔴 逆イールド発生中（{current_spread:.2f}%）"
+        )
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["Spread"],
+            mode="lines",
+            name="10年債−2年債"
+        )
+    )
+
+    fig.add_hline(
+        y=0,
+        line_color="red",
+        line_dash="dash",
+        annotation_text="逆イールドライン"
+    )
+
+    fig.update_layout(
+        title="米国10年債−2年債スプレッド",
+        height=650,
+        hovermode="x unified"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
     )
