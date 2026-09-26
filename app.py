@@ -190,6 +190,13 @@ def get_yield_curve_data():
     except Exception:
         return None
 
+# ==================================
+# Plotly共通設定
+# ==================================
+
+PLOT_CONFIG = {
+    "scrollZoom": False
+}
 
 # ==================================
 # 主要指標表示
@@ -311,6 +318,7 @@ elif selected_view in all_symbols:
     st.plotly_chart(
         fig,
         use_container_width=True
+        config=PLOT_CONFIG
     )
 
 # ==================================
