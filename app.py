@@ -734,8 +734,3 @@ elif selected_view == "逆イールド":
         fig2,
         use_container_width=True
     )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
