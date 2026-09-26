@@ -609,7 +609,7 @@ elif selected_view == "Gold vs VIX":
 # ==================================
 elif selected_view == "逆イールド":
 
-    st.subheader("📉 米国逆イールド")
+    st.subheader("📉 米国イールドカーブ")
 
     df = get_yield_curve_data()
 
@@ -640,41 +640,99 @@ elif selected_view == "逆イールド":
 
     if current_spread > 0.5:
         st.success(
-            f"🟢 正常（{current_spread:.2f}%）"
+            f"🟢 正常（10年債が2年債を上回っています）"
         )
 
     elif current_spread > 0:
         st.warning(
-            f"🟡 フラット化注意（{current_spread:.2f}%）"
+            f"🟡 フラット化注意"
         )
 
     else:
         st.error(
-            f"🔴 逆イールド発生中（{current_spread:.2f}%）"
+            f"🔴 逆イールド発生中"
         )
 
-    fig = go.Figure()
+    # -------------------------
+    # 上段：10年債と2年債
+    # -------------------------
 
-    fig.add_trace(
+    fig1 = go.Figure()
+
+    fig1.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["10Y"],
+            mode="lines",
+            name="米10年債",
+            line=dict(
+                color="blue",
+                width=3
+            )
+        )
+    )
+
+    fig1.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["2Y"],
+            mode="lines",
+            name="米2年債",
+            line=dict(
+                color="red",
+                width=3
+            )
+        )
+    )
+
+    fig1.update_layout(
+        title="米10年債 vs 米2年債",
+        height=500,
+        hovermode="x unified",
+        yaxis_title="利回り (%)"
+    )
+
+    st.plotly_chart(
+        fig1,
+        use_container_width=True
+    )
+
+    # -------------------------
+    # 下段：スプレッド
+    # -------------------------
+
+    fig2 = go.Figure()
+
+    fig2.add_trace(
         go.Scatter(
             x=df.index,
             y=df["Spread"],
             mode="lines",
-            name="10年債−2年債"
+            name="10年債−2年債",
+            line=dict(
+                color="green",
+                width=3
+            )
         )
     )
 
-    fig.add_hline(
+    fig2.add_hline(
         y=0,
-        line_color="red",
         line_dash="dash",
-        annotation_text="逆イールドライン"
+        line_color="red",
+        annotation_text="逆イールド境界"
     )
 
-    fig.update_layout(
-        title="米国10年債−2年債スプレッド",
-        height=650,
-        hovermode="x unified"
+    fig2.update_layout(
+        title="10年債−2年債スプレッド",
+        height=400,
+        hovermode="x unified",
+        yaxis_title="Spread (%)"
+    )
+
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
     )
 
     st.plotly_chart(
