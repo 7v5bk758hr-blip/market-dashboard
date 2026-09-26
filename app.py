@@ -317,7 +317,7 @@ elif selected_view in all_symbols:
         title=f"{selected_view}（1年）",
         height=600,
         hovermode="x unified",
-        dragmode="pan"
+        dragmode=False
         )
 
     st.plotly_chart(
@@ -376,7 +376,7 @@ elif selected_view == "NASDAQ100 vs 米10年債":
     fig.update_layout(
         height=650,
         hovermode="x unified",
-        dragmode="pan",
+        dragmode=False,
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -452,6 +452,7 @@ elif selected_view == "日経225 vs USDJPY":
     fig.update_layout(
         height=650,
         hovermode="x unified",
+        dragmode=False,
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -527,6 +528,7 @@ elif selected_view == "SOX vs NASDAQ":
     fig.update_layout(
         height=650,
         hovermode="x unified",
+        dragmode=False,
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -602,6 +604,7 @@ elif selected_view == "Gold vs VIX":
     fig.update_layout(
         height=650,
         hovermode="x unified",
+        dragmode=False,
         legend=dict(
             orientation="h",
             yanchor="bottom",
