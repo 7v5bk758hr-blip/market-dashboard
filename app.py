@@ -382,7 +382,8 @@ elif selected_view == "NASDAQ100 vs 米10年債":
 
     st.plotly_chart(
         fig,
-        use_container_width=True
+        use_container_width=True,
+        config=PLOT_CONFIG
     )
 
     st.info(
@@ -456,8 +457,9 @@ elif selected_view == "日経225 vs USDJPY":
 
     st.plotly_chart(
         fig,
-        use_container_width=True
-    )
+        use_container_width=True,
+        config=PLOT_CONFIG
+  )
 
     st.info(
         "円安（USDJPY上昇）は一般的に日本株の追い風になりやすく、日経225との連動性を確認できます。"
@@ -530,7 +532,8 @@ elif selected_view == "SOX vs NASDAQ":
 
     st.plotly_chart(
         fig,
-        use_container_width=True
+        use_container_width=True,
+        config=PLOT_CONFIG
     )
 
     st.info(
@@ -604,7 +607,8 @@ elif selected_view == "Gold vs VIX":
 
     st.plotly_chart(
         fig,
-        use_container_width=True
+        use_container_width=True,
+        config=PLOT_CONFIG
     )
 
     st.info(
@@ -702,7 +706,8 @@ elif selected_view == "逆イールド":
 
     st.plotly_chart(
         fig1,
-        use_container_width=True
+        use_container_width=True,
+        config=PLOT_CONFIG
     )
 
     # -------------------------
@@ -740,5 +745,6 @@ elif selected_view == "逆イールド":
 
     st.plotly_chart(
         fig2,
-        use_container_width=True
+        use_container_width=True,
+        config=PLOT_CONFIG
     )
