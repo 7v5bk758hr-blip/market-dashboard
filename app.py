@@ -195,9 +195,13 @@ def get_yield_curve_data():
 # ==================================
 
 PLOT_CONFIG = {
-    "scrollZoom": False
+    "scrollZoom": False,
+    "displaylogo": False,
+    "modeBarButtonsToRemove": [
+        "select2d",
+        "lasso2d"
+    ]
 }
-
 # ==================================
 # 主要指標表示
 # ==================================
@@ -312,8 +316,9 @@ elif selected_view in all_symbols:
     fig.update_layout(
         title=f"{selected_view}（1年）",
         height=600,
-        hovermode="x unified"
-    )
+        hovermode="x unified",
+        dragmode="pan"
+        )
 
     st.plotly_chart(
         fig,
@@ -371,6 +376,7 @@ elif selected_view == "NASDAQ100 vs 米10年債":
     fig.update_layout(
         height=650,
         hovermode="x unified",
+        dragmode="pan",
         legend=dict(
             orientation="h",
             yanchor="bottom",
