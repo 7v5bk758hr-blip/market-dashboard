@@ -792,6 +792,7 @@ elif selected_view == "逆イールド":
         height=500,
         hovermode="x unified",
         yaxis_title="利回り (%)"
+        dragmode=False
     )
 
     st.plotly_chart(
@@ -831,6 +832,7 @@ elif selected_view == "逆イールド":
         height=400,
         hovermode="x unified",
         yaxis_title="Spread (%)"
+        dragmode=False
     )
 
     st.plotly_chart(
