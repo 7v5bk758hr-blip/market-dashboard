@@ -201,17 +201,25 @@ PLOT_CONFIG = {
 # ==================================
 # 主要指標表示
 # ==================================
-
 if category == "主要指標":
 
-    st.subheader("主要指標")
+    # ----------------------
+    # 株式
+    # ----------------------
+    st.subheader("📈 株式")
 
-    cols = st.columns(4)
+    stock_symbols = {
+        "S&P500": "^GSPC",
+        "NASDAQ100": "^NDX",
+        "日経225": "^N225",
+        "SOX": "^SOX"
+    }
 
-    for i, (name, ticker) in enumerate(all_symbols.items()):
+    col1, col2 = st.columns(2)
+
+    for i, (name, ticker) in enumerate(stock_symbols.items()):
 
         try:
-
             df = get_data(ticker)
 
             if len(df) < 2:
@@ -223,7 +231,6 @@ if category == "主要指標":
             daily_pct = ((latest - prev) / prev) * 100
 
             current_year = pd.Timestamp.today().year
-
             ytd_data = df[df.index.year == current_year]
 
             if len(ytd_data) > 0:
@@ -232,21 +239,74 @@ if category == "主要指標":
             else:
                 ytd_pct = 0
 
-            with cols[i % 4]:
+            target_col = col1 if i % 2 == 0 else col2
 
+            with target_col:
                 st.metric(
-                    label=name,
-                    value=f"{latest:,.2f}",
-                    delta=f"{daily_pct:+.2f}%"
+                    name,
+                    f"{latest:,.2f}",
+                    f"{daily_pct:+.2f}%"
                 )
+                st.caption(f"YTD : {ytd_pct:+.2f}%")
 
-                st.caption(
-                    f"YTD : {ytd_pct:+.2f}%"
+        except Exception:
+            target_col = col1 if i % 2 == 0 else col2
+
+            with target_col:
+                st.error(f"{name}取得失敗")
+
+    st.divider()
+
+    # ----------------------
+    # 為替・金利
+    # ----------------------
+    st.subheader("💱 為替・金利")
+
+    macro_symbols = {
+        "USDJPY": "JPY=X",
+        "米10年債": "^TNX",
+        "VIX": "^VIX",
+        "Gold": "GC=F"
+    }
+
+    col1, col2 = st.columns(2)
+
+    for i, (name, ticker) in enumerate(macro_symbols.items()):
+
+        try:
+            df = get_data(ticker)
+
+            if len(df) < 2:
+                continue
+
+            latest = float(df["Close"].iloc[-1])
+            prev = float(df["Close"].iloc[-2])
+
+            daily_pct = ((latest - prev) / prev) * 100
+
+            current_year = pd.Timestamp.today().year
+            ytd_data = df[df.index.year == current_year]
+
+            if len(ytd_data) > 0:
+                first_price = float(ytd_data["Close"].iloc[0])
+                ytd_pct = ((latest - first_price) / first_price) * 100
+            else:
+                ytd_pct = 0
+
+            target_col = col1 if i % 2 == 0 else col2
+
+            with target_col:
+                st.metric(
+                    name,
+                    f"{latest:,.2f}",
+                    f"{daily_pct:+.2f}%"
                 )
+                st.caption(f"YTD : {ytd_pct:+.2f}%")
 
-        except Exception as e:
+        except Exception:
+            target_col = col1 if i % 2 == 0 else col2
 
-            with cols[i % 4]:
+            with target_col:
                 st.error(f"{name}取得失敗")
 
 
