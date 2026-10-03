@@ -715,14 +715,20 @@ elif selected_view == "逆イールド":
 
     try:
 
-        def get_yield_curve_data():
+        df = get_yield_curve_data()
 
-        latest = spread.iloc[-1]
+        if df is None:
+            st.error("逆イールドデータ取得失敗")
+            st.stop()
+
+        latest = float(df["Spread"].iloc[-1])
 
         if latest < 0:
             st.error(f"逆イールド継続中: {latest:.2f}%")
+
         elif latest < 0.5:
             st.warning(f"フラット化注意: {latest:.2f}%")
+
         else:
             st.success(f"正常なイールドカーブ: {latest:.2f}%")
 
@@ -730,10 +736,13 @@ elif selected_view == "逆イールド":
 
         fig.add_trace(
             go.Scatter(
-                x=spread.index,
-                y=spread,
-                name="10年債-2年債",
-                line=dict(color="orange", width=3)
+                x=df.index,
+                y=df["Spread"],
+                name="10年債−2年債",
+                line=dict(
+                    color="orange",
+                    width=3
+                )
             )
         )
 
@@ -744,11 +753,12 @@ elif selected_view == "逆イールド":
         )
 
         fig.update_layout(
-            title="米国債10年-2年スプレッド",
+            title="米国債10年−2年スプレッド",
             xaxis_title="日付",
             yaxis_title="利回り (%)",
             hovermode="x unified",
-            height=500
+            height=400,
+            dragmode=False
         )
 
         st.plotly_chart(
