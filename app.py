@@ -215,9 +215,9 @@ if category == "主要指標":
         "SOX": "^SOX"
     }
 
-    col1, col2 = st.columns(2)
+    stock_data = []
 
-    for i, (name, ticker) in enumerate(stock_symbols.items()):
+    for name, ticker in stock_symbols.items():
 
         try:
             df = get_data(ticker)
@@ -239,21 +239,17 @@ if category == "主要指標":
             else:
                 ytd_pct = 0
 
-            target_col = col1 if i % 2 == 0 else col2
-
-            with target_col:
-                st.metric(
-                    name,
-                    f"{latest:,.2f}",
-                    f"{daily_pct:+.2f}%"
-                )
-                st.caption(f"YTD : {ytd_pct:+.2f}%")
+            stock_data.append({
+                "名称": name,
+                "現在値": f"{latest:,.2f}",
+                "前日比": f"{daily_pct:+.2f}%",
+                "YTD": f"{ytd_pct:+.2f}%"
+            })
 
         except Exception:
-            target_col = col1 if i % 2 == 0 else col2
+            pass
 
-            with target_col:
-                st.error(f"{name}取得失敗")
+    st.table(pd.DataFrame(stock_data))
 
     st.divider()
 
@@ -269,9 +265,9 @@ if category == "主要指標":
         "Gold": "GC=F"
     }
 
-    col1, col2 = st.columns(2)
+    macro_data = []
 
-    for i, (name, ticker) in enumerate(macro_symbols.items()):
+    for name, ticker in macro_symbols.items():
 
         try:
             df = get_data(ticker)
@@ -293,22 +289,17 @@ if category == "主要指標":
             else:
                 ytd_pct = 0
 
-            target_col = col1 if i % 2 == 0 else col2
-
-            with target_col:
-                st.metric(
-                    name,
-                    f"{latest:,.2f}",
-                    f"{daily_pct:+.2f}%"
-                )
-                st.caption(f"YTD : {ytd_pct:+.2f}%")
+            macro_data.append({
+                "名称": name,
+                "現在値": f"{latest:,.2f}",
+                "前日比": f"{daily_pct:+.2f}%",
+                "YTD": f"{ytd_pct:+.2f}%"
+            })
 
         except Exception:
-            target_col = col1 if i % 2 == 0 else col2
+            pass
 
-            with target_col:
-                st.error(f"{name}取得失敗")
-
+    st.table(pd.DataFrame(macro_data))
 
 # ==================================
 # 単独チャート表示
