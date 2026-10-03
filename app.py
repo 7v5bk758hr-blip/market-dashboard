@@ -243,7 +243,7 @@ if category == "主要指標":
                 "名称": name,
                 "現在値": f"{latest:,.0f}",
                 "前日比": f"{daily_pct:+.2f}%",
-                "YTD": f"{ytd_pct:+.2f}%"
+                "年初来": f"{ytd_pct:+.2f}%"
             })
 
         except Exception:
@@ -291,9 +291,9 @@ if category == "主要指標":
 
             macro_data.append({
                 "名称": name,
-                "現在値": f"{latest:,.2f}",
+                "現在値": f"{latest:,.0f}",
                 "前日比": f"{daily_pct:+.2f}%",
-                "YTD": f"{ytd_pct:+.2f}%"
+                "年初来": f"{ytd_pct:+.2f}%"
             })
 
         except Exception:
