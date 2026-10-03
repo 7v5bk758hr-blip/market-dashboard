@@ -396,7 +396,7 @@ if selected_view != "表示しない" and selected_view in all_symbols:
 
     fig.update_layout(
         title=f"{selected_view}（1年）",
-        height=450,
+        height=300,
         hovermode="x unified",
         dragmode=False
         )
