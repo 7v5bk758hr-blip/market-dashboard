@@ -37,81 +37,77 @@ all_symbols = {
 # 初期値
 # ==================================
 
-if "selected_view" not in st.session_state:
-    st.session_state.selected_view = "主要指標"
-
-# ==================================
-# ボタンエリア
-# ==================================
-
-# 1段目
-c1, c2, c3, c4, c5, spacer = st.columns([1, 1, 1, 1, 1, 3])
-
-if c1.button("主要指標"):
-    st.session_state.selected_view = "主要指標"
-
-if c2.button("USDJPY"):
-    st.session_state.selected_view = "USDJPY"
-
-if c3.button("米10年債"):
-    st.session_state.selected_view = "米10年債"
-
-if c4.button("VIX"):
-    st.session_state.selected_view = "VIX"
-
-if c5.button("逆イールド"):
-    st.session_state.selected_view = "逆イールド"
-
-
-# 2段目
-c1, c2, c3, c4, c5, spacer = st.columns([1, 1, 1, 1, 1, 3])
-
-if c1.button("日経225"):
-    st.session_state.selected_view = "日経225"
-
-if c2.button("S&P500"):
-    st.session_state.selected_view = "S&P500"
-
-if c3.button("NASDAQ100"):
-    st.session_state.selected_view = "NASDAQ100"
-
-if c4.button("SOX"):
-    st.session_state.selected_view = "SOX"
-
-if c5.button("Gold"):
-    st.session_state.selected_view = "Gold"
-
-
-# 3段目
-c1, c2, c3, c4, spacer = st.columns([1, 1, 1, 1, 4])
-
-if c1.button("日経225 vs USDJPY"):
-    st.session_state.selected_view = "日経225 vs USDJPY"
-
-if c2.button("NASDAQ100 vs 米10年債"):
-    st.session_state.selected_view = "NASDAQ100 vs 米10年債"
-
-if c3.button("SOX vs NASDAQ"):
-    st.session_state.selected_view = "SOX vs NASDAQ"
-
-if c4.button("Gold vs VIX"):
-    st.session_state.selected_view = "Gold vs VIX"
-
-# ==================================
-# 選択状態
-# ==================================
-
-selected_view = st.session_state.selected_view
-# ==================================
-# 選択中の表示
-# ==================================
-
-selected_view = st.session_state.selected_view
-
 st.divider()
 
-st.write(f"選択中 : {selected_view}")
+category = st.selectbox(
+    "表示カテゴリ",
+    [
+        "主要指標",
+        "株式",
+        "為替・金利",
+        "相関分析",
+        "逆イールド"
+    ]
+)
 
+selected_view = None
+
+if category == "主要指標":
+
+    selected_view = st.selectbox(
+        "主要指標チャート",
+        [
+            "表示しない",
+            "S&P500",
+            "NASDAQ100",
+            "日経225",
+            "USDJPY",
+            "VIX",
+            "米10年債",
+            "SOX",
+            "Gold"
+        ]
+    )
+
+elif category == "株式":
+
+    selected_view = st.selectbox(
+        "チャート選択",
+        [
+            "日経225",
+            "S&P500",
+            "NASDAQ100",
+            "SOX"
+        ]
+    )
+
+elif category == "為替・金利":
+
+    selected_view = st.selectbox(
+        "チャート選択",
+        [
+            "USDJPY",
+            "米10年債",
+            "VIX",
+            "Gold"
+        ]
+    )
+
+elif category == "相関分析":
+
+    selected_view = st.selectbox(
+        "チャート選択",
+        [
+            "日経225 vs USDJPY",
+            "NASDAQ100 vs 米10年債",
+            "SOX vs NASDAQ",
+            "Gold vs VIX"
+        ]
+    )
+
+elif category == "逆イールド":
+
+    selected_view = "逆イールド"
 # ==================================
 # データ取得
 # ==================================
@@ -206,7 +202,7 @@ PLOT_CONFIG = {
 # 主要指標表示
 # ==================================
 
-if selected_view == "主要指標":
+if category == "主要指標":
 
     st.subheader("主要指標")
 
@@ -258,7 +254,7 @@ if selected_view == "主要指標":
 # 単独チャート表示
 # ==================================
 
-elif selected_view in all_symbols:
+if selected_view != "表示しない" and selected_view in all_symbols:
 
     ticker = all_symbols[selected_view]
 
