@@ -198,6 +198,22 @@ PLOT_CONFIG = {
         "lasso2d"
     ]
 }
+
+# ==================================
+# 色付け
+# ==================================
+def color_change(val):
+
+    val = str(val)
+
+    if val.startswith("+"):
+        return "color: green; font-weight: bold"
+
+    elif val.startswith("-"):
+        return "color: red; font-weight: bold"
+
+    return ""
+    
 # ==================================
 # 主要指標表示
 # ==================================
@@ -249,7 +265,16 @@ if category == "主要指標":
         except Exception:
             pass
 
-    st.table(pd.DataFrame(stock_data))
+    stock_df = pd.DataFrame(stock_data)
+
+    st.dataframe(
+        stock_df.style.map(
+            color_change,
+            subset=["前日比", "年初来"]
+        ),
+        use_container_width=True,
+        hide_index=True
+    )
 
     st.divider()
 
@@ -299,7 +324,16 @@ if category == "主要指標":
         except Exception:
             pass
 
-    st.table(pd.DataFrame(macro_data))
+    macro_df = pd.DataFrame(macro_data)
+
+    st.dataframe(
+        macro_df.style.map(
+            color_change,
+            subset=["前日比", "年初来"]
+        ),
+        use_container_width=True,
+        hide_index=True
+    )
 
 # ==================================
 # 単独チャート表示
