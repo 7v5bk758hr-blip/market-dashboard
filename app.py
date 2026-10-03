@@ -228,7 +228,8 @@ if category == "主要指標":
         "S&P500": "^GSPC",
         "NASDAQ100": "^NDX",
         "日経225": "^N225",
-        "SOX": "^SOX"
+        "SOX": "^SOX",
+        "Gold": "GC=F"
     }
 
     stock_data = []
@@ -287,7 +288,6 @@ if category == "主要指標":
         "USDJPY": "JPY=X",
         "米10年債": "^TNX",
         "VIX": "^VIX",
-        "Gold": "GC=F"
     }
 
     macro_data = []
