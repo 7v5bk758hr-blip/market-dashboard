@@ -802,11 +802,11 @@ fig1.update_layout(
     )
 )
 
-    st.plotly_chart(
-        fig1,
-        use_container_width=True,
-        config=PLOT_CONFIG
-    )
+st.plotly_chart(
+    fig1,
+    use_container_width=True,
+    config=PLOT_CONFIG
+)
 
     # -------------------------
     # 下段：スプレッド
