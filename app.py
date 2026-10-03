@@ -715,7 +715,7 @@ elif selected_view == "逆イールド":
 
     try:
 
-        spread = get_yield_spread()
+        def get_yield_curve_data():
 
         latest = spread.iloc[-1]
 
