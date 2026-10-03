@@ -396,7 +396,7 @@ if selected_view != "表示しない" and selected_view in all_symbols:
 
     fig.update_layout(
         title=f"{selected_view}（1年）",
-        height=600,
+        height=450,
         hovermode="x unified",
         dragmode=False
         )
@@ -455,7 +455,7 @@ elif selected_view == "NASDAQ100 vs 米10年債":
     )
 
     fig.update_layout(
-        height=650,
+        height=500,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
@@ -531,7 +531,7 @@ elif selected_view == "日経225 vs USDJPY":
     )
 
     fig.update_layout(
-        height=650,
+        height=500,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
@@ -607,7 +607,7 @@ elif selected_view == "SOX vs NASDAQ":
     )
 
     fig.update_layout(
-        height=650,
+        height=500,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
@@ -683,7 +683,7 @@ elif selected_view == "Gold vs VIX":
     )
 
     fig.update_layout(
-        height=650,
+        height=500,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
@@ -789,7 +789,7 @@ elif selected_view == "逆イールド":
 
     fig1.update_layout(
         title="米10年債 vs 米2年債",
-        height=500,
+        height=400,
         hovermode="x unified",
         yaxis_title="利回り (%)",
         dragmode=False
