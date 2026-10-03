@@ -791,7 +791,7 @@ elif selected_view == "逆イールド":
         title="米10年債 vs 米2年債",
         height=500,
         hovermode="x unified",
-        yaxis_title="利回り (%)"
+        yaxis_title="利回り (%)",
         dragmode=False
     )
 
@@ -831,7 +831,7 @@ elif selected_view == "逆イールド":
         title="10年債−2年債スプレッド",
         height=400,
         hovermode="x unified",
-        yaxis_title="Spread (%)"
+        yaxis_title="Spread (%)",
         dragmode=False
     )
 
