@@ -763,7 +763,7 @@ elif selected_view == "逆イールド":
                 name="米10年債",
                 line=dict(
                     color="blue",
-                    width=3
+                    width=2
                 )
             )
         )
@@ -776,7 +776,7 @@ elif selected_view == "逆イールド":
                 name="米2年債",
                 line=dict(
                     color="red",
-                    width=3
+                    width=2
                 )
             )
         )
@@ -816,7 +816,7 @@ elif selected_view == "逆イールド":
                 name="10年債−2年債",
                 line=dict(
                     color="green",
-                    width=3
+                    width=2
                 )
             )
         )
