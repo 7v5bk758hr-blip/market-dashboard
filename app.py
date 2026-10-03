@@ -787,13 +787,20 @@ elif selected_view == "逆イールド":
         )
     )
 
-    fig1.update_layout(
-        title="米10年債 vs 米2年債",
-        height=400,
-        hovermode="x unified",
-        yaxis_title="利回り (%)",
-        dragmode=False
+fig1.update_layout(
+    title="米10年債 vs 米2年債",
+    height=400,
+    hovermode="x unified",
+    yaxis_title="利回り (%)",
+    dragmode=False,
+    legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="right",
+        x=1
     )
+)
 
     st.plotly_chart(
         fig1,
@@ -827,13 +834,20 @@ elif selected_view == "逆イールド":
         annotation_text="逆イールド境界"
     )
 
-    fig2.update_layout(
-        title="10年債−2年債スプレッド",
-        height=400,
-        hovermode="x unified",
-        yaxis_title="Spread (%)",
-        dragmode=False
+fig2.update_layout(
+    title="10年債−2年債スプレッド",
+    height=400,
+    hovermode="x unified",
+    yaxis_title="Spread (%)",
+    dragmode=False,
+    legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="right",
+        x=1
     )
+)
 
     st.plotly_chart(
         fig2,
