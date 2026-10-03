@@ -723,46 +723,120 @@ elif selected_view == "逆イールド":
 
         latest = float(df["Spread"].iloc[-1])
 
+        c1, c2, c3 = st.columns(3)
+
+        c1.metric(
+            "米10年債",
+            f"{df['10Y'].iloc[-1]:.2f}%"
+        )
+
+        c2.metric(
+            "米2年債",
+            f"{df['2Y'].iloc[-1]:.2f}%"
+        )
+
+        c3.metric(
+            "スプレッド",
+            f"{latest:.2f}%"
+        )
+
         if latest < 0:
-            st.error(f"逆イールド継続中: {latest:.2f}%")
+            st.error(f"🔴 逆イールド継続中 : {latest:.2f}%")
 
         elif latest < 0.5:
-            st.warning(f"フラット化注意: {latest:.2f}%")
+            st.warning(f"🟡 フラット化注意 : {latest:.2f}%")
 
         else:
-            st.success(f"正常なイールドカーブ: {latest:.2f}%")
+            st.success(f"🟢 正常なイールドカーブ : {latest:.2f}%")
 
-        fig = go.Figure()
+        # -------------------------
+        # 上段：10年債 vs 2年債
+        # -------------------------
 
-        fig.add_trace(
+        fig1 = go.Figure()
+
+        fig1.add_trace(
             go.Scatter(
                 x=df.index,
-                y=df["Spread"],
-                name="10年債−2年債",
+                y=df["10Y"],
+                mode="lines",
+                name="米10年債",
                 line=dict(
-                    color="orange",
+                    color="blue",
                     width=3
                 )
             )
         )
 
-        fig.add_hline(
+        fig1.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df["2Y"],
+                mode="lines",
+                name="米2年債",
+                line=dict(
+                    color="red",
+                    width=3
+                )
+            )
+        )
+
+        fig1.update_layout(
+            title="米10年債 vs 米2年債",
+            height=400,
+            hovermode="x unified",
+            dragmode=False,
+            yaxis_title="利回り (%)",
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
+        )
+
+        st.plotly_chart(
+            fig1,
+            use_container_width=True,
+            config=PLOT_CONFIG
+        )
+
+        # -------------------------
+        # 下段：スプレッド
+        # -------------------------
+
+        fig2 = go.Figure()
+
+        fig2.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df["Spread"],
+                mode="lines",
+                name="10年債−2年債",
+                line=dict(
+                    color="green",
+                    width=3
+                )
+            )
+        )
+
+        fig2.add_hline(
             y=0,
             line_dash="dash",
             line_color="red"
         )
 
-        fig.update_layout(
-            title="米国債10年−2年スプレッド",
-            xaxis_title="日付",
-            yaxis_title="利回り (%)",
-            hovermode="x unified",
+        fig2.update_layout(
+            title="10年債−2年債スプレッド",
             height=400,
-            dragmode=False
+            hovermode="x unified",
+            dragmode=False,
+            yaxis_title="Spread (%)"
         )
 
         st.plotly_chart(
-            fig,
+            fig2,
             use_container_width=True,
             config=PLOT_CONFIG
         )
