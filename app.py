@@ -455,7 +455,7 @@ elif selected_view == "NASDAQ100 vs 米10年債":
     )
 
     fig.update_layout(
-        height=500,
+        height=400,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
@@ -531,7 +531,7 @@ elif selected_view == "日経225 vs USDJPY":
     )
 
     fig.update_layout(
-        height=500,
+        height=400,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
@@ -607,7 +607,7 @@ elif selected_view == "SOX vs NASDAQ":
     )
 
     fig.update_layout(
-        height=500,
+        height=400,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
@@ -683,7 +683,7 @@ elif selected_view == "Gold vs VIX":
     )
 
     fig.update_layout(
-        height=500,
+        height=400,
         hovermode="x unified",
         dragmode=False,
         legend=dict(
