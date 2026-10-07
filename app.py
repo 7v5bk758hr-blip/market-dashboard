@@ -207,7 +207,7 @@ def color_change(val):
     val = str(val)
 
     if val.startswith("+"):
-        return "color: green; font-weight: bold"
+        return "color: green"
 
     elif val.startswith("-"):
         return "color: red; font-weight: bold"
