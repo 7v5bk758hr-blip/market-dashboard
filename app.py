@@ -422,7 +422,8 @@ if selected_view != "表示しない" and selected_view in all_symbols:
         title=f"{selected_view}（1年）",
         height=400,
         hovermode="x unified",
-        dragmode=False
+        dragmode=False,
+        xaxis_tickformat="%Y.%m"
     )
 
     st.plotly_chart(
