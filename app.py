@@ -365,8 +365,17 @@ if selected_view != "表示しない" and selected_view in all_symbols:
     latest = float(df["Close"].iloc[-1])
     prev = float(df["Close"].iloc[-2])
 
+    # 前日比
     daily_pct = ((latest - prev) / prev) * 100
 
+    # 前月比（約22営業日）
+    if len(df) >= 22:
+        month_price = float(df["Close"].iloc[-22])
+        monthly_pct = ((latest - month_price) / month_price) * 100
+    else:
+        monthly_pct = 0
+
+    # 年初来
     current_year = pd.Timestamp.today().year
 
     ytd_data = df[df.index.year == current_year]
@@ -383,6 +392,7 @@ if selected_view != "表示しない" and selected_view in all_symbols:
         {
             "現在値": f"{latest:,.2f}",
             "前日比": f"{daily_pct:+.2f}%",
+            "前月比": f"{monthly_pct:+.2f}%",
             "年初来": f"{ytd_pct:+.2f}%"
         }
     ])
@@ -390,7 +400,7 @@ if selected_view != "表示しない" and selected_view in all_symbols:
     st.dataframe(
         summary_df.style.map(
             color_change,
-            subset=["前日比", "年初来"]
+            subset=["前日比", "前月比", "年初来"]
         ),
         use_container_width=True,
         hide_index=True
