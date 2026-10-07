@@ -483,6 +483,7 @@ elif selected_view == "NASDAQ100 vs 米10年債":
         height=400,
         hovermode="x unified",
         dragmode=False,
+        xaxis_tickformat="%Y.%m",
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -559,6 +560,7 @@ elif selected_view == "日経225 vs USDJPY":
         height=400,
         hovermode="x unified",
         dragmode=False,
+        xaxis_tickformat="%Y.%m",
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -635,6 +637,7 @@ elif selected_view == "SOX vs NASDAQ":
         height=400,
         hovermode="x unified",
         dragmode=False,
+        xaxis_tickformat="%Y.%m",
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -711,6 +714,7 @@ elif selected_view == "Gold vs VIX":
         height=400,
         hovermode="x unified",
         dragmode=False,
+        xaxis_tickformat="%Y.%m",
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -811,6 +815,7 @@ elif selected_view == "逆イールド":
             height=400,
             hovermode="x unified",
             dragmode=False,
+            xaxis_tickformat="%Y.%m",
             yaxis_title="利回り (%)",
             legend=dict(
                 orientation="h",
@@ -857,6 +862,7 @@ elif selected_view == "逆イールド":
             height=400,
             hovermode="x unified",
             dragmode=False,
+            xaxis_tickformat="%Y.%m",
             yaxis_title="Spread (%)"
         )
 
