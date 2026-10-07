@@ -247,6 +247,12 @@ if category == "主要指標":
 
             daily_pct = ((latest - prev) / prev) * 100
 
+            if len(df) >= 22:
+                month_price = float(df["Close"].iloc[-22])
+                monthly_pct = ((latest - month_price) / month_price) * 100
+            else:
+                monthly_pct = 0
+
             current_year = pd.Timestamp.today().year
             ytd_data = df[df.index.year == current_year]
 
@@ -260,6 +266,7 @@ if category == "主要指標":
                 "名称": name,
                 "現在値": f"{latest:,.0f}",
                 "前日比": f"{daily_pct:+.2f}%",
+                "前月比": f"{monthly_pct:+.2f}%",
                 "年初来": f"{ytd_pct:+.2f}%"
             })
 
@@ -271,7 +278,7 @@ if category == "主要指標":
     st.dataframe(
         stock_df.style.map(
             color_change,
-            subset=["前日比", "年初来"]
+            subset=["前日比", "前月比", "年初来"]
         ),
         use_container_width=True,
         hide_index=True
@@ -287,7 +294,7 @@ if category == "主要指標":
     macro_symbols = {
         "USDJPY": "JPY=X",
         "米10年債": "^TNX",
-        "VIX": "^VIX",
+        "VIX": "^VIX"
     }
 
     macro_data = []
@@ -305,6 +312,12 @@ if category == "主要指標":
 
             daily_pct = ((latest - prev) / prev) * 100
 
+            if len(df) >= 22:
+                month_price = float(df["Close"].iloc[-22])
+                monthly_pct = ((latest - month_price) / month_price) * 100
+            else:
+                monthly_pct = 0
+
             current_year = pd.Timestamp.today().year
             ytd_data = df[df.index.year == current_year]
 
@@ -318,6 +331,7 @@ if category == "主要指標":
                 "名称": name,
                 "現在値": f"{latest:,.2f}",
                 "前日比": f"{daily_pct:+.2f}%",
+                "前月比": f"{monthly_pct:+.2f}%",
                 "年初来": f"{ytd_pct:+.2f}%"
             })
 
@@ -329,12 +343,11 @@ if category == "主要指標":
     st.dataframe(
         macro_df.style.map(
             color_change,
-            subset=["前日比", "年初来"]
+            subset=["前日比", "前月比", "年初来"]
         ),
         use_container_width=True,
         hide_index=True
     )
-
 # ==================================
 # 単独チャート表示
 # ==================================
@@ -366,21 +379,21 @@ if selected_view != "表示しない" and selected_view in all_symbols:
 
     st.subheader(selected_view)
 
-    c1, c2, c3 = st.columns(3)
+    summary_df = pd.DataFrame([
+        {
+            "現在値": f"{latest:,.2f}",
+            "前日比": f"{daily_pct:+.2f}%",
+            "年初来": f"{ytd_pct:+.2f}%"
+        }
+    ])
 
-    c1.metric(
-        "現在値",
-        f"{latest:,.2f}"
-    )
-
-    c2.metric(
-        "前日比",
-        f"{daily_pct:+.2f}%"
-    )
-
-    c3.metric(
-        "YTD",
-        f"{ytd_pct:+.2f}%"
+    st.dataframe(
+        summary_df.style.map(
+            color_change,
+            subset=["前日比", "年初来"]
+        ),
+        use_container_width=True,
+        hide_index=True
     )
 
     fig = go.Figure()
@@ -390,7 +403,8 @@ if selected_view != "表示しない" and selected_view in all_symbols:
             x=df.index,
             y=df["Close"],
             mode="lines",
-            name=selected_view
+            name=selected_view,
+            line=dict(width=2)
         )
     )
 
@@ -399,7 +413,7 @@ if selected_view != "表示しない" and selected_view in all_symbols:
         height=400,
         hovermode="x unified",
         dragmode=False
-        )
+    )
 
     st.plotly_chart(
         fig,
