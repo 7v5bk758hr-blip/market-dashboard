@@ -515,7 +515,7 @@ elif selected_view == "景気モニター":
         "景気後退シグナル": "5%以上"
     })
 
-    monitor_df = pd.DataFrame(monitor)
+    monitor_df = pd.DataFrame(monitor_data)
 
 # ==================================
 # 逆イールド（10年債 - 2年債）
