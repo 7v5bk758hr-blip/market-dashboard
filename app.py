@@ -94,11 +94,40 @@ elif category == "為替・金利":
     )
 
 elif category == "景気モニター":
+
     selected_view = "景気モニター"
 
 elif category == "逆イールド":
 
     selected_view = "逆イールド"
+# ==================================
+# データ取得
+# ==================================
+
+@st.cache_data(ttl=3600)
+def get_data(ticker):
+
+    try:
+
+        df = yf.download(
+            ticker,
+            period="1y",
+            auto_adjust=True,
+            progress=False
+        )
+
+        if df.empty:
+            return pd.DataFrame()
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+
+        return df
+
+    except Exception:
+        return pd.DataFrame()
+
+
 @st.cache_data(ttl=3600)
 def get_yield_curve_data():
 
@@ -148,41 +177,6 @@ def get_yield_curve_data():
 
     except Exception:
         return None
-
-
-@st.cache_data(ttl=3600)
-def get_recession_data():
-
-    try:
-
-        start = "2000-01-01"
-        end = datetime.today()
-
-        sahm = pdr.DataReader(
-            "SAHMREALTIME",
-            "fred",
-            start,
-            end
-        )
-
-        pmi = pdr.DataReader(
-            "NAPM",
-            "fred",
-            start,
-            end
-        )
-
-        hy = pdr.DataReader(
-            "BAMLC0A0HYM2",
-            "fred",
-            start,
-            end
-        )
-
-        return {
-            "sahm": sahm.dropna(),
-            "pmi": pmi.dropna(),
-            "hy": hy.dropna
 
 # ==================================
 # Plotly共通設定
@@ -431,135 +425,64 @@ if selected_view != "表示しない" and selected_view in all_symbols:
     )
 
 # ==================================
-# 景気モニター
+# NASDAQ100 vs 米10年債
 # ==================================
-elif selected_view == "景気モニター":
 
-    st.subheader("📉 景気モニター")
+elif selected_view == "NASDAQ100 vs 米10年債":
 
-    monitor_data = []
+    nasdaq = get_data("^NDX")
+    tnx = get_data("^TNX")
 
-    # -----------------------------
-    # イールドカーブ
-    # -----------------------------
-    try:
+    st.subheader("NASDAQ100 vs 米10年債")
 
-        yc = get_yield_curve_data()
-
-        spread = float(yc["Spread"].iloc[-1])
-
-        if spread < 0:
-            status = "🔴 景気後退警戒"
-        elif spread < 0.5:
-            status = "🟡 注意"
-        else:
-            status = "🟢 正常"
-
-        monitor_data.append({
-            "指標": "イールドカーブ",
-            "現在値": f"{spread:.2f}%",
-            "状態": status,
-            "景気後退シグナル": "0%未満"
-        })
-
-    except:
-        pass
-
-    # -----------------------------
-    # サームルール（仮値）
-    # -----------------------------
-    sahm = 0.35
-
-    if sahm >= 0.5:
-        status = "🔴 景気後退"
-    elif sahm >= 0.3:
-        status = "🟡 注意"
-    else:
-        status = "🟢 正常"
-
-    monitor_data.append({
-        "指標": "サームルール",
-        "現在値": f"{sahm:.2f}",
-        "状態": status,
-        "景気後退シグナル": "0.5以上"
-    })
-
-    # -----------------------------
-    # PMI（仮値）
-    # -----------------------------
-    pmi = 49.5
-
-    if pmi < 47:
-        status = "🔴 景気後退懸念"
-    elif pmi < 50:
-        status = "🟡 減速"
-    else:
-        status = "🟢 拡大"
-
-    monitor_data.append({
-        "指標": "ISM PMI",
-        "現在値": f"{pmi:.1f}",
-        "状態": status,
-        "景気後退シグナル": "50未満"
-    })
-
-    # -----------------------------
-    # HYスプレッド（仮値）
-    # -----------------------------
-    hy = 3.8
-
-    if hy > 8:
-        status = "🔴 景気後退警戒"
-    elif hy > 5:
-        status = "🟡 注意"
-    else:
-        status = "🟢 正常"
-
-    monitor_data.append({
-        "指標": "HYスプレッド",
-        "現在値": f"{hy:.1f}%",
-        "状態": status,
-        "景気後退シグナル": "5%以上"
-    })
-
-    monitor_df = pd.DataFrame(monitor_data)
-
-    st.dataframe(
-        monitor_df,
-        use_container_width=True,
-        hide_index=True
+    fig = make_subplots(
+        specs=[[{"secondary_y": True}]]
     )
-
-    st.divider()
-
-    st.markdown("### イールドカーブ（10年債－2年債）")
-
-    fig = go.Figure()
 
     fig.add_trace(
         go.Scatter(
-            x=yc.index,
-            y=yc["Spread"],
+            x=nasdaq.index,
+            y=nasdaq["Close"],
             mode="lines",
-            name="10年債－2年債",
-            line=dict(
-                color="blue",
-                width=2
-            )
-        )
+            name="NASDAQ100",
+            line=dict(color="blue", width=2)
+        ),
+        secondary_y=False
     )
 
-    fig.add_hline(
-        y=0,
-        line_dash="dash",
-        line_color="red"
+    fig.add_trace(
+        go.Scatter(
+            x=tnx.index,
+            y=tnx["Close"],
+            mode="lines",
+            name="米10年債",
+            line=dict(color="red", width=2)
+        ),
+        secondary_y=True
+    )
+
+    fig.update_yaxes(
+        title_text="NASDAQ100",
+        secondary_y=False
+    )
+
+    fig.update_yaxes(
+        title_text="米10年債利回り",
+        secondary_y=True
     )
 
     fig.update_layout(
-        height=350,
+        height=400,
         hovermode="x unified",
         dragmode=False,
-        xaxis_tickformat="%Y.%m"
+        xaxis_tickformat="%Y.%m",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
     )
 
     st.plotly_chart(
@@ -567,7 +490,243 @@ elif selected_view == "景気モニター":
         use_container_width=True,
         config=PLOT_CONFIG
     )
-    
+
+    st.info(
+        "NASDAQ100が上昇し、米10年債利回りが低下している場合はハイテク株に追い風となる傾向があります。"
+    )
+
+# ==================================
+# 日経225 vs USDJPY
+# ==================================
+
+elif selected_view == "日経225 vs USDJPY":
+
+    nikkei = get_data("^N225")
+    usdjpy = get_data("JPY=X")
+
+    st.subheader("日経225 vs USDJPY")
+
+    fig = make_subplots(
+        specs=[[{"secondary_y": True}]]
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=nikkei.index,
+            y=nikkei["Close"],
+            mode="lines",
+            name="日経225",
+            line=dict(
+                color="green",
+                width=2
+            )
+        ),
+        secondary_y=False
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=usdjpy.index,
+            y=usdjpy["Close"],
+            mode="lines",
+            name="USDJPY",
+            line=dict(
+                color="orange",
+                width=2
+            )
+        ),
+        secondary_y=True
+    )
+
+    fig.update_yaxes(
+        title_text="日経225",
+        secondary_y=False
+    )
+
+    fig.update_yaxes(
+        title_text="USDJPY",
+        secondary_y=True
+    )
+
+    fig.update_layout(
+        height=400,
+        hovermode="x unified",
+        dragmode=False,
+        xaxis_tickformat="%Y.%m",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOT_CONFIG
+  )
+
+    st.info(
+        "円安（USDJPY上昇）は一般的に日本株の追い風になりやすく、日経225との連動性を確認できます。"
+    )
+
+# ==================================
+# SOX vs NASDAQ100
+# ==================================
+
+elif selected_view == "SOX vs NASDAQ":
+
+    sox = get_data("^SOX")
+    nasdaq = get_data("^NDX")
+
+    st.subheader("SOX vs NASDAQ100")
+
+    fig = make_subplots(
+        specs=[[{"secondary_y": True}]]
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=sox.index,
+            y=sox["Close"],
+            mode="lines",
+            name="SOX",
+            line=dict(
+                color="purple",
+                width=2
+            )
+        ),
+        secondary_y=False
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=nasdaq.index,
+            y=nasdaq["Close"],
+            mode="lines",
+            name="NASDAQ100",
+            line=dict(
+                color="blue",
+                width=2
+            )
+        ),
+        secondary_y=True
+    )
+
+    fig.update_yaxes(
+        title_text="SOX",
+        secondary_y=False
+    )
+
+    fig.update_yaxes(
+        title_text="NASDAQ100",
+        secondary_y=True
+    )
+
+    fig.update_layout(
+        height=400,
+        hovermode="x unified",
+        dragmode=False,
+        xaxis_tickformat="%Y.%m",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOT_CONFIG
+    )
+
+    st.info(
+        "SOXがNASDAQ100を上回って推移している場合、半導体セクター主導の強い上昇相場を示すことが多いです。"
+    )
+
+# ==================================
+# Gold vs VIX
+# ==================================
+
+elif selected_view == "Gold vs VIX":
+
+    gold = get_data("GC=F")
+    vix = get_data("^VIX")
+
+    st.subheader("Gold vs VIX")
+
+    fig = make_subplots(
+        specs=[[{"secondary_y": True}]]
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=gold.index,
+            y=gold["Close"],
+            mode="lines",
+            name="Gold",
+            line=dict(
+                color="gold",
+                width=2
+            )
+        ),
+        secondary_y=False
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=vix.index,
+            y=vix["Close"],
+            mode="lines",
+            name="VIX",
+            line=dict(
+                color="red",
+                width=2
+            )
+        ),
+        secondary_y=True
+    )
+
+    fig.update_yaxes(
+        title_text="Gold",
+        secondary_y=False
+    )
+
+    fig.update_yaxes(
+        title_text="VIX",
+        secondary_y=True
+    )
+
+    fig.update_layout(
+        height=400,
+        hovermode="x unified",
+        dragmode=False,
+        xaxis_tickformat="%Y.%m",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOT_CONFIG
+    )
+
+    st.info(
+        "GoldとVIXが同時上昇する場合はリスクオフ傾向、VIX低下とGold横ばい・下落はリスクオン傾向として参考になります。"
+    )
+
+
 # ==================================
 # 逆イールド（10年債 - 2年債）
 # ==================================
