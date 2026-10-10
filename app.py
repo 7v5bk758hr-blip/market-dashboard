@@ -523,6 +523,44 @@ elif selected_view == "景気モニター":
         hide_index=True
     )
 
+    st.divider()
+
+    st.markdown("### イールドカーブ（10年債－2年債）")
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=yc.index,
+            y=yc["Spread"],
+            mode="lines",
+            name="10年債－2年債",
+            line=dict(
+                color="blue",
+                width=2
+            )
+        )
+    )
+
+    fig.add_hline(
+        y=0,
+        line_dash="dash",
+        line_color="red"
+    )
+
+    fig.update_layout(
+        height=350,
+        hovermode="x unified",
+        dragmode=False,
+        xaxis_tickformat="%Y.%m"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOT_CONFIG
+    )
+    
 # ==================================
 # 逆イールド（10年債 - 2年債）
 # ==================================
