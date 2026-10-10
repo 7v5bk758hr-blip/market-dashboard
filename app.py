@@ -497,7 +497,7 @@ elif selected_view == "景気モニター":
     })
 
     # -----------------------------
-    # ハイイールド債スプレッド（仮値）
+    # HYスプレッド（仮値）
     # -----------------------------
     hy = 3.8
 
@@ -515,103 +515,7 @@ elif selected_view == "景気モニター":
         "景気後退シグナル": "5%以上"
     })
 
-    monitor_df = pd.DataFrame(monitor_data)
-
-    st.dataframe(
-        monitor_df,
-        use_container_width=True,
-        hide_index=True
-    )
-
-    st.divider()
-
-    st.markdown("### イールドカーブ（10年債－2年債）")
-
-    fig = go.Figure()
-
-    fig.add_trace(
-        go.Scatter(
-            x=yc.index,
-            y=yc["Spread"],
-            mode="lines",
-            name="10年債－2年債",
-            line=dict(
-                color="blue",
-                width=2
-            )
-        )
-    )
-
-    fig.add_hline(
-        y=0,
-        line_dash="dash",
-        line_color="red"
-    )
-
-    fig.update_layout(
-        height=350,
-        hovermode="x unified",
-        dragmode=False,
-        xaxis_tickformat="%Y.%m"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=PLOT_CONFIG
-    )
-    
-    st.divider()
-    
-    st.markdown("### サームルール")
-
-sahm_history = pd.DataFrame(
-    {
-        "Date": pd.date_range(
-            end=pd.Timestamp.today(),
-            periods=24,
-            freq="ME"
-        ),
-        "Value": [0.15,0.18,0.20,0.22,0.25,0.28,
-                  0.30,0.32,0.35,0.34,0.33,0.31,
-                  0.30,0.28,0.27,0.29,0.30,0.31,
-                  0.32,0.33,0.34,0.35,0.36,0.35]
-    }
-)
-
-fig = go.Figure()
-
-fig.add_trace(
-    go.Scatter(
-        x=sahm_history["Date"],
-        y=sahm_history["Value"],
-        mode="lines",
-        name="Sahm Rule",
-        line=dict(
-            color="purple",
-            width=2
-        )
-    )
-)
-
-fig.add_hline(
-    y=0.5,
-    line_dash="dash",
-    line_color="red"
-)
-
-fig.update_layout(
-    height=350,
-    hovermode="x unified",
-    dragmode=False,
-    xaxis_tickformat="%Y.%m"
-)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True,
-    config=PLOT_CONFIG
-)
+    monitor_df = pd.DataFrame(monitor
 
 # ==================================
 # 逆イールド（10年債 - 2年債）
