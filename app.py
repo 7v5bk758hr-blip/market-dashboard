@@ -99,34 +99,6 @@ elif category == "景気モニター":
 elif category == "逆イールド":
 
     selected_view = "逆イールド"
-# ==================================
-# データ取得
-# ==================================
-
-@st.cache_data(ttl=3600)
-def get_data(ticker):
-
-    try:
-
-        df = yf.download(
-            ticker,
-            period="1y",
-            auto_adjust=True,
-            progress=False
-        )
-
-        if df.empty:
-            return pd.DataFrame()
-
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-
-        return df
-
-    except Exception:
-        return pd.DataFrame()
-
-
 @st.cache_data(ttl=3600)
 def get_yield_curve_data():
 
@@ -174,7 +146,11 @@ def get_yield_curve_data():
 
         return df
 
-    @st.cache_data(ttl=3600)
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=3600)
 def get_recession_data():
 
     try:
@@ -206,16 +182,7 @@ def get_recession_data():
         return {
             "sahm": sahm.dropna(),
             "pmi": pmi.dropna(),
-            "hy": hy.dropna()
-        }
-
-    except Exception as e:
-
-        st.error(f"景気指標取得失敗: {e}")
-
-        return None
-    except Exception:
-        return None
+            "hy": hy.dropna
 
 # ==================================
 # Plotly共通設定
