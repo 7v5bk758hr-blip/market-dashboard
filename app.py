@@ -560,9 +560,10 @@ elif selected_view == "景気モニター":
         use_container_width=True,
         config=PLOT_CONFIG
     )
-st.divider()
-
-st.markdown("### サームルール")
+    
+    st.divider()
+    
+    st.markdown("### サームルール")
 
 sahm_history = pd.DataFrame(
     {
