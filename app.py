@@ -45,7 +45,7 @@ category = st.selectbox(
         "主要指標",
         "株式",
         "為替・金利",
-        "相関分析",
+        "景気モニター",
         "逆イールド"
     ]
 )
@@ -93,17 +93,8 @@ elif category == "為替・金利":
         ]
     )
 
-elif category == "相関分析":
-
-    selected_view = st.selectbox(
-        "チャート選択",
-        [
-            "日経225 vs USDJPY",
-            "NASDAQ100 vs 米10年債",
-            "SOX vs NASDAQ",
-            "Gold vs VIX"
-        ]
-    )
+elif category == "景気モニター":
+    selected_view = "景気モニター"
 
 elif category == "逆イールド":
 
@@ -433,306 +424,104 @@ if selected_view != "表示しない" and selected_view in all_symbols:
     )
 
 # ==================================
-# NASDAQ100 vs 米10年債
+# 景気モニター
 # ==================================
+elif selected_view == "景気モニター":
 
-elif selected_view == "NASDAQ100 vs 米10年債":
+    st.subheader("📉 景気後退モニター")
 
-    nasdaq = get_data("^NDX")
-    tnx = get_data("^TNX")
+    c1, c2 = st.columns(2)
+    c3, c4 = st.columns(2)
 
-    st.subheader("NASDAQ100 vs 米10年債")
+    # -----------------------------
+    # イールドカーブ
+    # -----------------------------
+    try:
 
-    fig = make_subplots(
-        specs=[[{"secondary_y": True}]]
-    )
+        yc = get_yield_curve_data()
 
-    fig.add_trace(
-        go.Scatter(
-            x=nasdaq.index,
-            y=nasdaq["Close"],
-            mode="lines",
-            name="NASDAQ100",
-            line=dict(color="blue", width=2)
-        ),
-        secondary_y=False
-    )
+        spread = float(yc["Spread"].iloc[-1])
 
-    fig.add_trace(
-        go.Scatter(
-            x=tnx.index,
-            y=tnx["Close"],
-            mode="lines",
-            name="米10年債",
-            line=dict(color="red", width=2)
-        ),
-        secondary_y=True
-    )
+        if spread < 0:
+            status = "🔴 危険"
+        elif spread < 0.5:
+            status = "🟡 注意"
+        else:
+            status = "🟢 正常"
 
-    fig.update_yaxes(
-        title_text="NASDAQ100",
-        secondary_y=False
-    )
-
-    fig.update_yaxes(
-        title_text="米10年債利回り",
-        secondary_y=True
-    )
-
-    fig.update_layout(
-        height=400,
-        hovermode="x unified",
-        dragmode=False,
-        xaxis_tickformat="%Y.%m",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
+        c1.metric(
+            "イールドカーブ",
+            f"{spread:.2f}%"
         )
-    )
+        c1.caption(status)
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=PLOT_CONFIG
-    )
+    except:
+        c1.error("取得失敗")
 
-    st.info(
-        "NASDAQ100が上昇し、米10年債利回りが低下している場合はハイテク株に追い風となる傾向があります。"
-    )
+    # -----------------------------
+    # VIX
+    # -----------------------------
+    try:
 
-# ==================================
-# 日経225 vs USDJPY
-# ==================================
+        vix = get_data("^VIX")
 
-elif selected_view == "日経225 vs USDJPY":
-
-    nikkei = get_data("^N225")
-    usdjpy = get_data("JPY=X")
-
-    st.subheader("日経225 vs USDJPY")
-
-    fig = make_subplots(
-        specs=[[{"secondary_y": True}]]
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=nikkei.index,
-            y=nikkei["Close"],
-            mode="lines",
-            name="日経225",
-            line=dict(
-                color="green",
-                width=2
-            )
-        ),
-        secondary_y=False
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=usdjpy.index,
-            y=usdjpy["Close"],
-            mode="lines",
-            name="USDJPY",
-            line=dict(
-                color="orange",
-                width=2
-            )
-        ),
-        secondary_y=True
-    )
-
-    fig.update_yaxes(
-        title_text="日経225",
-        secondary_y=False
-    )
-
-    fig.update_yaxes(
-        title_text="USDJPY",
-        secondary_y=True
-    )
-
-    fig.update_layout(
-        height=400,
-        hovermode="x unified",
-        dragmode=False,
-        xaxis_tickformat="%Y.%m",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
+        latest_vix = float(
+            vix["Close"].iloc[-1]
         )
-    )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=PLOT_CONFIG
-  )
+        if latest_vix > 30:
+            status = "🔴 高リスク"
+        elif latest_vix > 20:
+            status = "🟡 警戒"
+        else:
+            status = "🟢 安定"
 
-    st.info(
-        "円安（USDJPY上昇）は一般的に日本株の追い風になりやすく、日経225との連動性を確認できます。"
-    )
-
-# ==================================
-# SOX vs NASDAQ100
-# ==================================
-
-elif selected_view == "SOX vs NASDAQ":
-
-    sox = get_data("^SOX")
-    nasdaq = get_data("^NDX")
-
-    st.subheader("SOX vs NASDAQ100")
-
-    fig = make_subplots(
-        specs=[[{"secondary_y": True}]]
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=sox.index,
-            y=sox["Close"],
-            mode="lines",
-            name="SOX",
-            line=dict(
-                color="purple",
-                width=2
-            )
-        ),
-        secondary_y=False
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=nasdaq.index,
-            y=nasdaq["Close"],
-            mode="lines",
-            name="NASDAQ100",
-            line=dict(
-                color="blue",
-                width=2
-            )
-        ),
-        secondary_y=True
-    )
-
-    fig.update_yaxes(
-        title_text="SOX",
-        secondary_y=False
-    )
-
-    fig.update_yaxes(
-        title_text="NASDAQ100",
-        secondary_y=True
-    )
-
-    fig.update_layout(
-        height=400,
-        hovermode="x unified",
-        dragmode=False,
-        xaxis_tickformat="%Y.%m",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
+        c2.metric(
+            "VIX",
+            f"{latest_vix:.1f}"
         )
+        c2.caption(status)
+
+    except:
+        c2.error("取得失敗")
+
+    # -----------------------------
+    # PMI（手入力版）
+    # -----------------------------
+    pmi = 49.5
+
+    if pmi < 47:
+        status = "🔴 景気後退懸念"
+    elif pmi < 50:
+        status = "🟡 減速"
+    else:
+        status = "🟢 拡大"
+
+    c3.metric(
+        "ISM PMI",
+        pmi
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=PLOT_CONFIG
+    c3.caption(status)
+
+    # -----------------------------
+    # ハイイールド債
+    # -----------------------------
+    hy_spread = 3.8
+
+    if hy_spread > 8:
+        status = "🔴 危険"
+    elif hy_spread > 5:
+        status = "🟡 警戒"
+    else:
+        status = "🟢 正常"
+
+    c4.metric(
+        "HYスプレッド",
+        f"{hy_spread:.1f}%"
     )
 
-    st.info(
-        "SOXがNASDAQ100を上回って推移している場合、半導体セクター主導の強い上昇相場を示すことが多いです。"
-    )
-
-# ==================================
-# Gold vs VIX
-# ==================================
-
-elif selected_view == "Gold vs VIX":
-
-    gold = get_data("GC=F")
-    vix = get_data("^VIX")
-
-    st.subheader("Gold vs VIX")
-
-    fig = make_subplots(
-        specs=[[{"secondary_y": True}]]
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=gold.index,
-            y=gold["Close"],
-            mode="lines",
-            name="Gold",
-            line=dict(
-                color="gold",
-                width=2
-            )
-        ),
-        secondary_y=False
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=vix.index,
-            y=vix["Close"],
-            mode="lines",
-            name="VIX",
-            line=dict(
-                color="red",
-                width=2
-            )
-        ),
-        secondary_y=True
-    )
-
-    fig.update_yaxes(
-        title_text="Gold",
-        secondary_y=False
-    )
-
-    fig.update_yaxes(
-        title_text="VIX",
-        secondary_y=True
-    )
-
-    fig.update_layout(
-        height=400,
-        hovermode="x unified",
-        dragmode=False,
-        xaxis_tickformat="%Y.%m",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        )
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=PLOT_CONFIG
-    )
-
-    st.info(
-        "GoldとVIXが同時上昇する場合はリスクオフ傾向、VIX低下とGold横ばい・下落はリスクオン傾向として参考になります。"
-    )
+    c4.caption(status)
 
 
 # ==================================
