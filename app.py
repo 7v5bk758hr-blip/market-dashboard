@@ -430,16 +430,11 @@ elif selected_view == "景気モニター":
 
     st.subheader("📉 景気後退モニター")
 
-    c1, c2 = st.columns(2)
-    c3, c4 = st.columns(2)
+    monitor_data = []
 
-    # -----------------------------
     # イールドカーブ
-    # -----------------------------
     try:
-
         yc = get_yield_curve_data()
-
         spread = float(yc["Spread"].iloc[-1])
 
         if spread < 0:
@@ -449,79 +444,74 @@ elif selected_view == "景気モニター":
         else:
             status = "🟢 正常"
 
-        c1.metric(
-            "イールドカーブ",
-            f"{spread:.2f}%"
-        )
-        c1.caption(status)
+        monitor_data.append({
+            "指標": "イールドカーブ",
+            "現在値": f"{spread:.2f}%",
+            "状態": status,
+            "判定": "10年−2年"
+        })
 
     except:
-        c1.error("取得失敗")
+        pass
 
-    # -----------------------------
-    # VIX
-    # -----------------------------
-    try:
+    # サームルール（仮値）
+    sahm = 0.35
 
-        vix = get_data("^VIX")
+    if sahm >= 0.5:
+        status = "🔴 景気後退"
+    elif sahm >= 0.3:
+        status = "🟡 注意"
+    else:
+        status = "🟢 正常"
 
-        latest_vix = float(
-            vix["Close"].iloc[-1]
-        )
+    monitor_data.append({
+        "指標": "サームルール",
+        "現在値": f"{sahm:.2f}",
+        "状態": status,
+        "判定": "0.5以上"
+    })
 
-        if latest_vix > 30:
-            status = "🔴 高リスク"
-        elif latest_vix > 20:
-            status = "🟡 警戒"
-        else:
-            status = "🟢 安定"
-
-        c2.metric(
-            "VIX",
-            f"{latest_vix:.1f}"
-        )
-        c2.caption(status)
-
-    except:
-        c2.error("取得失敗")
-
-    # -----------------------------
-    # PMI（手入力版）
-    # -----------------------------
+    # PMI（仮値）
     pmi = 49.5
 
     if pmi < 47:
-        status = "🔴 景気後退懸念"
+        status = "🔴 危険"
     elif pmi < 50:
         status = "🟡 減速"
     else:
         status = "🟢 拡大"
 
-    c3.metric(
-        "ISM PMI",
-        pmi
-    )
+    monitor_data.append({
+        "指標": "ISM PMI",
+        "現在値": f"{pmi:.1f}",
+        "状態": status,
+        "判定": "50以上"
+    })
 
-    c3.caption(status)
+    # HYスプレッド（仮値）
+    hy = 3.8
 
-    # -----------------------------
-    # ハイイールド債
-    # -----------------------------
-    hy_spread = 3.8
-
-    if hy_spread > 8:
+    if hy > 8:
         status = "🔴 危険"
-    elif hy_spread > 5:
+    elif hy > 5:
         status = "🟡 警戒"
     else:
         status = "🟢 正常"
 
-    c4.metric(
-        "HYスプレッド",
-        f"{hy_spread:.1f}%"
-    )
+    monitor_data.append({
+        "指標": "HYスプレッド",
+        "現在値": f"{hy:.1f}%",
+        "状態": status,
+        "判定": "5%未満"
+    })
 
-    c4.caption(status)
+    monitor_df = pd.DataFrame(monitor_data)
+
+    st.dataframe(
+        monitor_df,
+        use_container_width=True,
+        hide_index=True
+    )
 
 
 # ==================================
