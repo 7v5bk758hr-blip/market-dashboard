@@ -174,6 +174,46 @@ def get_yield_curve_data():
 
         return df
 
+    @st.cache_data(ttl=3600)
+def get_recession_data():
+
+    try:
+
+        start = "2000-01-01"
+        end = datetime.today()
+
+        sahm = pdr.DataReader(
+            "SAHMREALTIME",
+            "fred",
+            start,
+            end
+        )
+
+        pmi = pdr.DataReader(
+            "NAPM",
+            "fred",
+            start,
+            end
+        )
+
+        hy = pdr.DataReader(
+            "BAMLC0A0HYM2",
+            "fred",
+            start,
+            end
+        )
+
+        return {
+            "sahm": sahm.dropna(),
+            "pmi": pmi.dropna(),
+            "hy": hy.dropna()
+        }
+
+    except Exception as e:
+
+        st.error(f"景気指標取得失敗: {e}")
+
+        return None
     except Exception:
         return None
 
