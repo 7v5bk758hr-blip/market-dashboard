@@ -517,6 +517,12 @@ elif selected_view == "景気モニター":
 
     monitor_df = pd.DataFrame(monitor_data)
 
+    st.dataframe(
+        monitor_df,
+        use_container_width=True,
+        hide_index=True
+    )
+
 # ==================================
 # 逆イールド（10年債 - 2年債）
 # ==================================
