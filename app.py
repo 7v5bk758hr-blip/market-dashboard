@@ -428,7 +428,7 @@ if selected_view != "表示しない" and selected_view in all_symbols:
 # ==================================
 elif selected_view == "景気モニター":
 
-    st.subheader("📉 景気後退モニター")
+    st.subheader("📉 景気モニター")
 
     monitor_data = []
 
