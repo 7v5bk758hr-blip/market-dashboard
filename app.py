@@ -23,14 +23,14 @@ st.title("📊 市場サマリー")
 # ==================================
 
 all_symbols = {
+    "日経225": "^N225",
     "S&P500": "^GSPC",
     "NASDAQ100": "^NDX",
-    "日経225": "^N225",
-    "USDJPY": "JPY=X",
-    "VIX": "^VIX",
-    "米10年債": "^TNX",
     "SOX": "^SOX",
-    "Gold": "GC=F"
+    "Gold": "GC=F",
+    "USDJPY": "JPY=X",
+    "米10年債": "^TNX",
+    "VIX": "^VIX",
 }
 
 # ==================================
@@ -43,53 +43,28 @@ category = st.selectbox(
     "表示カテゴリ",
     [
         "主要指標",
-        "株式",
-        "為替・金利",
+        "マーケット",
         "景気モニター",
-        "逆イールド"
     ]
 )
 
 selected_view = None
 
 if category == "主要指標":
+    selected_view = None
+
+elif category == "マーケット":
 
     selected_view = st.selectbox(
-        "主要指標チャート",
+        "チャート選択",
         [
-            "表示しない",
+            "日経225",
             "S&P500",
             "NASDAQ100",
-            "日経225",
-            "USDJPY",
-            "VIX",
-            "米10年債",
             "SOX",
-            "Gold"
-        ]
-    )
-
-elif category == "株式":
-
-    selected_view = st.selectbox(
-        "チャート選択",
-        [
-            "日経225",
-            "S&P500",
-            "NASDAQ100",
-            "SOX"
-        ]
-    )
-
-elif category == "為替・金利":
-
-    selected_view = st.selectbox(
-        "チャート選択",
-        [
+            "Gold",
             "USDJPY",
             "米10年債",
-            "VIX",
-            "Gold"
         ]
     )
 
@@ -97,9 +72,6 @@ elif category == "景気モニター":
 
     selected_view = "景気モニター"
 
-elif category == "逆イールド":
-
-    selected_view = "逆イールド"
 # ==================================
 # データ取得
 # ==================================
@@ -238,9 +210,9 @@ if category == "主要指標":
     st.subheader("📈 株式")
 
     stock_symbols = {
+        "日経225": "^N225",
         "S&P500": "^GSPC",
         "NASDAQ100": "^NDX",
-        "日経225": "^N225",
         "SOX": "^SOX",
         "Gold": "GC=F"
     }
@@ -307,7 +279,6 @@ if category == "主要指標":
     macro_symbols = {
         "USDJPY": "JPY=X",
         "米10年債": "^TNX",
-        "VIX": "^VIX"
     }
 
     macro_data = []
@@ -365,7 +336,7 @@ if category == "主要指標":
 # 単独チャート表示
 # ==================================
 
-if selected_view != "表示しない" and selected_view in all_symbols:
+if category in ["マーケット"] and selected_view in all_symbols:
 
     ticker = all_symbols[selected_view]
 
@@ -453,6 +424,8 @@ elif selected_view == "景気モニター":
 
     st.subheader("📉 景気モニター")
 
+
+    # イールドカーブ
     yc = get_yield_curve_data()
 
     if yc is None:
@@ -488,6 +461,54 @@ elif selected_view == "景気モニター":
 
 
 
+    # VIX
+    vix = yf.download("^VIX", period="1mo", progress=False)
+
+    current_vix = None
+    vix_status = "取得失敗"
+
+    if not vix.empty:
+        try:
+            current_vix = float(vix["Close"].iloc[-1].item())
+        except:
+            current_vix = float(vix["Close"].iloc[-1])
+
+        if current_vix < 20:
+            vix_status = "🟢 低リスク"
+        elif current_vix < 30:
+            vix_status = "🟡 警戒"
+        else:
+            vix_status = "🔴 高リスク"
+
+
+    # ハイイールド債スプレッド
+    try:
+        hy_url = (
+            "https://fred.stlouisfed.org/graph/fredgraph.csv"
+            "?id=BAMLH0A0HYM2"
+        )
+
+        hy_df = pd.read_csv(hy_url)
+
+        latest_hy = float(
+            hy_df["BAMLH0A0HYM2"]
+            .dropna()
+            .iloc[-1]
+        )
+
+        if latest_hy < 4:
+            hy_status = "🟢 正常"
+        elif latest_hy < 6:
+            hy_status = "🟡 注意"
+        else:
+            hy_status = "🔴 警戒"
+
+    except:
+        latest_hy = None
+        hy_status = "取得失敗"
+
+
+
     monitor_data = [
         {
             "指標": "イールドカーブ",
@@ -500,6 +521,26 @@ elif selected_view == "景気モニター":
             "現在値": f"{latest_sahm:.2f}",
             "状態": sahm_status,
             "景気後退シグナル": "0.5以上"
+        },
+        {
+            "指標": "VIX",
+            "現在値": (
+                f"{current_vix:.2f}"
+                if current_vix is not None
+                else "-"
+            ),
+            "状態": vix_status,
+            "景気後退シグナル": "20超で注意"
+        },
+        {
+            "指標": "ハイイールド債",
+            "現在値": (
+                f"{latest_hy:.2f}%"
+                if latest_hy is not None
+                else "-"
+            ),
+            "状態": hy_status,
+            "景気後退シグナル": "6%以上"
         },
     ]
 
@@ -611,130 +652,117 @@ elif selected_view == "景気モニター":
         st.warning("サームルール取得失敗")
 
 
-# ==================================
-# 逆イールド（10年債 - 2年債）
-# ==================================
-elif selected_view == "逆イールド":
 
-    st.subheader("🇺🇸 米国債 イールドカーブ")
+    st.divider()
+
+    st.markdown("### VIX（恐怖指数）")
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=vix.index,
+            y=vix["Close"].squeeze(),
+            mode="lines",
+            name="VIX",
+            line=dict(
+                color="orange",
+                width=2
+            )
+        )
+    )
+
+    fig.add_hline(
+        y=20,
+        line_dash="dash",
+        line_color="orange"
+    )
+
+    fig.add_hline(
+        y=30,
+        line_dash="dash",
+        line_color="red"
+    )
+
+    fig.update_layout(
+        height=400,
+        hovermode="x unified",
+        dragmode=False,
+        xaxis_tickformat="%Y.%m",
+        yaxis_title="VIX"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOT_CONFIG
+    )
+
+    if current_vix >= 30:
+        st.error(
+            f"🔴 高リスク : {current_vix:.2f}"
+        )
+    elif current_vix >= 20:
+        st.warning(
+            f"🟡 注意 : {current_vix:.2f}"
+        )
+    else:
+        st.success(
+            f"🟢 正常 : {current_vix:.2f}"
+        )
+
+
+
+    st.divider()
+
+    st.markdown("### ハイイールド債スプレッド")
 
     try:
-
-        df = get_yield_curve_data()
-
-        if df is None:
-            st.error("逆イールドデータ取得失敗")
-            st.stop()
-
-        latest = float(df["Spread"].iloc[-1])
-
-        c1, c2, c3 = st.columns(3)
-
-        c1.metric(
-            "米10年債",
-            f"{df['10Y'].iloc[-1]:.2f}%"
+        hy_url = (
+            "https://fred.stlouisfed.org/graph/fredgraph.csv"
+            "?id=BAMLH0A0HYM2"
         )
 
-        c2.metric(
-            "米2年債",
-            f"{df['2Y'].iloc[-1]:.2f}%"
+        hy_df = pd.read_csv(hy_url)
+
+        hy_df["BAMLH0A0HYM2"] = pd.to_numeric(
+            hy_df["BAMLH0A0HYM2"],
+            errors="coerce"
         )
 
-        c3.metric(
-            "スプレッド",
-            f"{latest:.2f}%"
-        )
+        fig = go.Figure()
 
-        if latest < 0:
-            st.error(f"🔴 逆イールド継続中 : {latest:.2f}%")
 
-        elif latest < 0.5:
-            st.warning(f"🟡 フラット化注意 : {latest:.2f}%")
 
-        else:
-            st.success(f"🟢 正常なイールドカーブ : {latest:.2f}%")
-
-        # -------------------------
-        # 上段：10年債 vs 2年債
-        # -------------------------
-
-        fig1 = go.Figure()
-
-        fig1.add_trace(
+        fig.add_trace(
             go.Scatter(
-                x=df.index,
-                y=df["10Y"],
+                x=pd.to_datetime(hy_df.iloc[:, 0]),
+                y=pd.to_numeric(
+                    hy_df.iloc[:, 1],
+                    errors="coerce"
+                ),
                 mode="lines",
-                name="米10年債",
+                name="HY Spread",
                 line=dict(
-                    color="blue",
+                    color="brown",
                     width=2
                 )
             )
         )
 
-        fig1.add_trace(
-            go.Scatter(
-                x=df.index,
-                y=df["2Y"],
-                mode="lines",
-                name="米2年債",
-                line=dict(
-                    color="red",
-                    width=2
-                )
-            )
+        fig.add_hline(
+            y=4,
+            line_dash="dash",
+            line_color="orange"
         )
 
-        fig1.update_layout(
-            title="米10年債 vs 米2年債",
-            height=400,
-            hovermode="x unified",
-            dragmode=False,
-            xaxis_tickformat="%Y.%m",
-            yaxis_title="利回り (%)",
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            )
-        )
-
-        st.plotly_chart(
-            fig1,
-            use_container_width=True,
-            config=PLOT_CONFIG
-        )
-
-        # -------------------------
-        # 下段：スプレッド
-        # -------------------------
-
-        fig2 = go.Figure()
-
-        fig2.add_trace(
-            go.Scatter(
-                x=df.index,
-                y=df["Spread"],
-                mode="lines",
-                name="10年債−2年債",
-                line=dict(
-                    color="green",
-                    width=2
-                )
-            )
-        )
-
-        fig2.add_hline(
-            y=0,
+        fig.add_hline(
+            y=6,
             line_dash="dash",
             line_color="red"
         )
 
-        fig2.update_layout(
-            title="10年債−2年債スプレッド",
+        fig.update_layout(
             height=400,
             hovermode="x unified",
             dragmode=False,
@@ -743,11 +771,31 @@ elif selected_view == "逆イールド":
         )
 
         st.plotly_chart(
-            fig2,
+            fig,
             use_container_width=True,
             config=PLOT_CONFIG
         )
 
-    except Exception as e:
+        latest_hy = float(
+            hy_df["BAMLH0A0HYM2"]
+            .dropna()
+            .iloc[-1]
+        )
 
-        st.error(f"逆イールド取得失敗: {e}")
+        if latest_hy >= 6:
+            st.error(
+                f"🔴 警戒 : {latest_hy:.2f}%"
+            )
+        elif latest_hy >= 4:
+            st.warning(
+                f"🟡 注意 : {latest_hy:.2f}%"
+            )
+        else:
+            st.success(
+                f"🟢 正常 : {latest_hy:.2f}%"
+            )
+
+    except Exception as e:
+        st.warning(
+            f"ハイイールド債スプレッド取得失敗: {e}"
+        )
