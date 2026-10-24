@@ -343,7 +343,7 @@ if category == "主要指標":
     st.dataframe(
         macro_df.style.map(
             color_change,
-            subset=["前日比", "前月比", "年初来", "高値比"]
+            subset=["前日比", "前月比", "年初来"]
         ),
         use_container_width=True,
         hide_index=True
