@@ -330,7 +330,6 @@ if category == "主要指標":
             macro_data.append({
                 "名称": name,
                 "現在値": f"{latest:,.2f}",
-                "高値比": f"{high_pct:+.2f}%",
                 "前日比": f"{daily_pct:+.2f}%",
                 "前月比": f"{monthly_pct:+.2f}%",
                 "年初来": f"{ytd_pct:+.2f}%"
