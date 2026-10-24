@@ -214,6 +214,7 @@ if category == "主要指標":
         "S&P500": "^GSPC",
         "NASDAQ100": "^NDX",
         "SOX": "^SOX",
+        "FANG+": "^NYFANG",
         "Gold": "GC=F"
     }
 
@@ -230,14 +231,17 @@ if category == "主要指標":
             latest = float(df["Close"].iloc[-1])
             prev = float(df["Close"].iloc[-2])
 
+            # 前日比
             daily_pct = ((latest - prev) / prev) * 100
 
+            # 前月比
             if len(df) >= 22:
                 month_price = float(df["Close"].iloc[-22])
                 monthly_pct = ((latest - month_price) / month_price) * 100
             else:
                 monthly_pct = 0
 
+            # 年初来
             current_year = pd.Timestamp.today().year
             ytd_data = df[df.index.year == current_year]
 
@@ -247,9 +251,14 @@ if category == "主要指標":
             else:
                 ytd_pct = 0
 
+            # 過去1年高値比
+            high_1y = float(df.tail(252)["High"].max())
+            high_pct = ((latest - high_1y) / high_1y) * 100
+
             stock_data.append({
                 "名称": name,
                 "現在値": f"{latest:,.0f}",
+                "高値比": f"{high_pct:+.2f}%",
                 "前日比": f"{daily_pct:+.2f}%",
                 "前月比": f"{monthly_pct:+.2f}%",
                 "年初来": f"{ytd_pct:+.2f}%"
@@ -263,7 +272,7 @@ if category == "主要指標":
     st.dataframe(
         stock_df.style.map(
             color_change,
-            subset=["前日比", "前月比", "年初来"]
+            subset=["前日比", "前月比", "年初来", "高値比"]
         ),
         use_container_width=True,
         hide_index=True
@@ -294,14 +303,17 @@ if category == "主要指標":
             latest = float(df["Close"].iloc[-1])
             prev = float(df["Close"].iloc[-2])
 
+            # 前日比
             daily_pct = ((latest - prev) / prev) * 100
 
+            # 前月比
             if len(df) >= 22:
                 month_price = float(df["Close"].iloc[-22])
                 monthly_pct = ((latest - month_price) / month_price) * 100
             else:
                 monthly_pct = 0
 
+            # 年初来
             current_year = pd.Timestamp.today().year
             ytd_data = df[df.index.year == current_year]
 
@@ -311,9 +323,14 @@ if category == "主要指標":
             else:
                 ytd_pct = 0
 
+            # 過去1年高値比
+            high_1y = float(df.tail(252)["High"].max())
+            high_pct = ((latest - high_1y) / high_1y) * 100
+
             macro_data.append({
                 "名称": name,
                 "現在値": f"{latest:,.2f}",
+                "高値比": f"{high_pct:+.2f}%",
                 "前日比": f"{daily_pct:+.2f}%",
                 "前月比": f"{monthly_pct:+.2f}%",
                 "年初来": f"{ytd_pct:+.2f}%"
@@ -327,11 +344,13 @@ if category == "主要指標":
     st.dataframe(
         macro_df.style.map(
             color_change,
-            subset=["前日比", "前月比", "年初来"]
+            subset=["前日比", "前月比", "年初来", "高値比"]
         ),
         use_container_width=True,
         hide_index=True
     )
+
+
 # ==================================
 # 単独チャート表示
 # ==================================
@@ -425,42 +444,6 @@ elif selected_view == "景気モニター":
     st.subheader("📉 景気モニター")
 
 
-    # イールドカーブ
-    yc = get_yield_curve_data()
-
-    if yc is None:
-        st.error("景気指標取得失敗")
-        st.stop()
-
-    spread = float(yc["Spread"].iloc[-1])
-
-    if spread < 0:
-        yc_status = "🔴 景気後退警戒"
-    elif spread < 0.5:
-        yc_status = "🟡 注意"
-    else:
-        yc_status = "🟢 正常"
-
-
-
-    # サームルール
-    sahm_df = get_sahm_rule_data()
-
-    latest_sahm = float(
-        sahm_df.iloc[-1, 0]
-    )
-
-    if latest_sahm >= 0.5:
-        sahm_status = "🔴 景気後退"
-
-    elif latest_sahm >= 0.3:
-        sahm_status = "🟡 注意"
-
-    else:
-        sahm_status = "🟢 正常"
-
-
-
     # VIX
     vix = yf.download("^VIX", period="1mo", progress=False)
 
@@ -479,6 +462,23 @@ elif selected_view == "景気モニター":
             vix_status = "🟡 警戒"
         else:
             vix_status = "🔴 高リスク"
+
+
+    # イールドカーブ
+    yc = get_yield_curve_data()
+
+    if yc is None:
+        st.error("景気指標取得失敗")
+        st.stop()
+
+    spread = float(yc["Spread"].iloc[-1])
+
+    if spread < 0:
+        yc_status = "🔴 景気後退警戒"
+    elif spread < 0.5:
+        yc_status = "🟡 注意"
+    else:
+        yc_status = "🟢 正常"
 
 
     # ハイイールド債スプレッド
@@ -503,25 +503,29 @@ elif selected_view == "景気モニター":
         else:
             hy_status = "🔴 警戒"
 
-    except:
+        # サームルール
+        sahm_df = get_sahm_rule_data()
+
+        latest_sahm = float(
+            sahm_df.iloc[-1, 0]
+        )
+
+        if latest_sahm >= 0.5:
+            sahm_status = "🔴 景気後退"
+        elif latest_sahm >= 0.3:
+            sahm_status = "🟡 注意"
+        else:
+            sahm_status = "🟢 正常"
+
+    except Exception:
         latest_hy = None
         hy_status = "取得失敗"
 
+        latest_sahm = None
+        sahm_status = "取得失敗"
 
 
     monitor_data = [
-        {
-            "指標": "イールドカーブ",
-            "現在値": f"{spread:.2f}%",
-            "状態": yc_status,
-            "景気後退シグナル": "0%未満"
-        },
-        {
-            "指標": "サームルール",
-            "現在値": f"{latest_sahm:.2f}",
-            "状態": sahm_status,
-            "景気後退シグナル": "0.5以上"
-        },
         {
             "指標": "VIX",
             "現在値": (
@@ -533,6 +537,12 @@ elif selected_view == "景気モニター":
             "景気後退シグナル": "20超で注意"
         },
         {
+            "指標": "イールドカーブ",
+            "現在値": f"{spread:.2f}%",
+            "状態": yc_status,
+            "景気後退シグナル": "0%未満"
+        },
+        {
             "指標": "ハイイールド債",
             "現在値": (
                 f"{latest_hy:.2f}%"
@@ -541,6 +551,12 @@ elif selected_view == "景気モニター":
             ),
             "状態": hy_status,
             "景気後退シグナル": "6%以上"
+        },
+        {
+            "指標": "サームルール",
+            "現在値": f"{latest_sahm:.2f}",
+            "状態": sahm_status,
+            "景気後退シグナル": "0.5以上"
         },
     ]
 
@@ -552,105 +568,6 @@ elif selected_view == "景気モニター":
         use_container_width=True,
         hide_index=True
     )
-
-    st.divider()
-
-    st.markdown("### イールドカーブ（10年債－2年債スプレッド）")
-
-    fig = go.Figure()
-
-    fig.add_trace(
-        go.Scatter(
-            x=yc.index,
-            y=yc["Spread"],
-            mode="lines",
-            name="10年債－2年債",
-            line=dict(
-                color="blue",
-                width=2
-            )
-        )
-    )
-
-    fig.add_hline(
-        y=0,
-        line_dash="dash",
-        line_color="red"
-    )
-
-    fig.update_layout(
-        height=400,
-        hovermode="x unified",
-        dragmode=False,
-        xaxis_tickformat="%Y.%m",
-        yaxis_title="Spread (%)"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config=PLOT_CONFIG
-    )
-
-    st.divider()
-
-    st.markdown("### サームルール")
-
-    sahm_df = get_sahm_rule_data()
-
-    if sahm_df is not None:
-
-        latest_sahm = float(
-            sahm_df.iloc[-1, 0]
-        )
-
-        fig = go.Figure()
-
-        fig.add_trace(
-            go.Scatter(
-                x=sahm_df.index,
-                y=sahm_df.iloc[:, 0],
-                mode="lines",
-                name="Sahm Rule",
-                line=dict(
-                    color="purple",
-                    width=2
-                )
-            )
-        )
-
-        fig.add_hline(
-            y=0.5,
-            line_dash="dash",
-            line_color="red"
-        )
-
-        fig.update_layout(
-            height=400,
-            hovermode="x unified",
-            dragmode=False,
-            xaxis_tickformat="%Y.%m",
-            yaxis_title="Sahm Rule"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True,
-            config=PLOT_CONFIG
-        )
-
-        if latest_sahm >= 0.5:
-            st.error(
-                f"🔴 景気後退シグナル発生中 : {latest_sahm:.2f}"
-            )
-        else:
-            st.success(
-                f"🟢 正常圏 : {latest_sahm:.2f}"
-            )
-
-    else:
-        st.warning("サームルール取得失敗")
-
 
 
     st.divider()
@@ -711,6 +628,47 @@ elif selected_view == "景気モニター":
             f"🟢 正常 : {current_vix:.2f}"
         )
 
+
+
+
+    st.divider()
+
+    st.markdown("### イールドカーブ（10年債－2年債スプレッド）")
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=yc.index,
+            y=yc["Spread"],
+            mode="lines",
+            name="10年債－2年債",
+            line=dict(
+                color="blue",
+                width=2
+            )
+        )
+    )
+
+    fig.add_hline(
+        y=0,
+        line_dash="dash",
+        line_color="red"
+    )
+
+    fig.update_layout(
+        height=400,
+        hovermode="x unified",
+        dragmode=False,
+        xaxis_tickformat="%Y.%m",
+        yaxis_title="Spread (%)"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config=PLOT_CONFIG
+    )
 
 
     st.divider()
@@ -799,3 +757,63 @@ elif selected_view == "景気モニター":
         st.warning(
             f"ハイイールド債スプレッド取得失敗: {e}"
         )
+
+
+    st.divider()
+
+    st.markdown("### サームルール")
+
+    sahm_df = get_sahm_rule_data()
+
+    if sahm_df is not None:
+
+        latest_sahm = float(
+            sahm_df.iloc[-1, 0]
+        )
+
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=sahm_df.index,
+                y=sahm_df.iloc[:, 0],
+                mode="lines",
+                name="Sahm Rule",
+                line=dict(
+                    color="purple",
+                    width=2
+                )
+            )
+        )
+
+        fig.add_hline(
+            y=0.5,
+            line_dash="dash",
+            line_color="red"
+        )
+
+        fig.update_layout(
+            height=400,
+            hovermode="x unified",
+            dragmode=False,
+            xaxis_tickformat="%Y.%m",
+            yaxis_title="Sahm Rule"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+            config=PLOT_CONFIG
+        )
+
+        if latest_sahm >= 0.5:
+            st.error(
+                f"🔴 景気後退シグナル発生中 : {latest_sahm:.2f}"
+            )
+        else:
+            st.success(
+                f"🟢 正常圏 : {latest_sahm:.2f}"
+            )
+
+    else:
+        st.warning("サームルール取得失敗")
